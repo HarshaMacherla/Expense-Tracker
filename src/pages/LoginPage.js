@@ -1,31 +1,22 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Button, Form } from "react-bootstrap";
+import AuthContext from "../auth-context/auth-context";
 
-const SignUpPage = ({ setIsLogin, setIsLoggedIn }) => {
+const LoginPage = () => {
   const emailRef = React.useRef();
   const passwordRef = React.useRef();
-  const confirmPasswordRef = React.useRef();
+
+  const { setLogin, setLoggedIn } = useContext(AuthContext);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
     const email = emailRef.current.value;
     const password = passwordRef.current.value;
-    const confirmPassword = confirmPasswordRef.current.value;
-
-    if (password.trim().length !== confirmPassword.trim().length) {
-      alert("Passwords mismatch!");
-      return;
-    }
-
-    if (password.trim().length === 0 || confirmPassword.trim().length === 0) {
-      alert("Password cannot be empty");
-      return;
-    }
 
     try {
       const response = await fetch(
-        "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyAvBSC-wnMSr4LTyhMGqXtQdczeBxPzacw",
+        "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyAvBSC-wnMSr4LTyhMGqXtQdczeBxPzacw",
         {
           method: "POST",
           body: JSON.stringify({
@@ -43,10 +34,12 @@ const SignUpPage = ({ setIsLogin, setIsLoggedIn }) => {
         const errorResponse = await response.json();
         throw new Error(errorResponse.error.message);
       }
+
       const data = await response.json();
-      localStorage.setItem("token", data.idToken);
-      console.log("SingedUp Successfully");
-      setIsLoggedIn(true);
+      const token = data.idToken;
+      localStorage.setItem("token", token);
+      console.log("Login Successful");
+      setLoggedIn(true);
     } catch (error) {
       alert(error.message);
     }
@@ -59,7 +52,7 @@ const SignUpPage = ({ setIsLogin, setIsLoggedIn }) => {
         className="mx-auto my-5 p-5 bg-light border rounded"
         style={{ width: "400px" }}
       >
-        <h2 className="text-center mb-4">SignUp</h2>
+        <h2 className="text-center mb-4">Login</h2>
 
         <Form.Control type="email" placeholder="Email" ref={emailRef} />
         <br />
@@ -71,17 +64,14 @@ const SignUpPage = ({ setIsLogin, setIsLoggedIn }) => {
         />
         <br />
 
-        <Form.Control
-          type="password"
-          placeholder="Confirm Password"
-          ref={confirmPasswordRef}
-        />
-        <br />
-
         <div className="d-grid gap-2">
           <button className="btn btn-primary" type="submit">
-            Sign up
+            Login
           </button>
+        </div>
+
+        <div className="text-center">
+          <a href="/">Forgot password?</a>
         </div>
       </Form>
 
@@ -90,15 +80,13 @@ const SignUpPage = ({ setIsLogin, setIsLoggedIn }) => {
           variant="secondary"
           className="mx-auto text-center border rounded p-2 d-block"
           style={{ width: "400px" }}
-          onClick={() => {
-            setIsLogin(true);
-          }}
+          onClick={() => setLogin(false)}
         >
-          Have an account? Login
+          Don't have an account? Register
         </Button>
       </div>
     </>
   );
 };
 
-export default SignUpPage;
+export default LoginPage;

@@ -1,49 +1,43 @@
-import React from "react";
+import React, { useContext } from "react";
 import "./App.css";
-import SignUpPage from "./components/UserAuthentication/SignUpPage";
-import LoginPage from "./components/UserAuthentication/LoginPage";
-import { Route, Switch, Redirect } from "react-router-dom";
+import LoginPage from "./pages/LoginPage";
+import SignUpPage from "./pages/SignUpPage";
+import AuthContext from "./auth-context/auth-context";
+import {
+  Redirect,
+  Route,
+  Switch,
+} from "react-router-dom/cjs/react-router-dom.min";
 import Home from "./pages/Home";
+import Profile from "./pages/Profile";
 
 const App = () => {
-  const [isLoggedIn, setIsLoggedIn] = React.useState(
-    !!localStorage.getItem("token")
-  );
-
-  const [isLogin, setIsLogin] = React.useState(true);
+  const { login, loggedIn } = useContext(AuthContext);
 
   return (
     <>
+      {!loggedIn && login ? (
+        <Redirect to="/login" />
+      ) : (
+        <Redirect to="/signup" />
+      )}
+
       <Switch>
         <Route path="/" exact>
-          {isLoggedIn && <Home />}
-          {!isLoggedIn && <Redirect to="/login" />}
+          {loggedIn ? <Home /> : <Redirect to="/login" />}
         </Route>
-        <Route path="/" exact>
-          {isLoggedIn && <Home />}
-          {!isLoggedIn && <Redirect to="/login" />}
+
+        <Route path="/profile" exact>
+          {loggedIn ? <Profile /> : <Redirect to="/login" />}
         </Route>
-        {isLogin ? (
-          <Route path="/login">
-            {isLoggedIn && <Redirect to="/" />}
-            {!isLoggedIn && (
-              <LoginPage
-                setIsLogin={setIsLogin}
-                setIsLoggedIn={setIsLoggedIn}
-              />
-            )}
-          </Route>
-        ) : (
-          <Route path="/signup">
-            {isLoggedIn && <Redirect to="/" />}
-            {!isLoggedIn && (
-              <SignUpPage
-                setIsLogin={setIsLogin}
-                setIsLoggedIn={setIsLoggedIn}
-              />
-            )}
-          </Route>
-        )}
+
+        <Route path="/login" exact>
+          {!loggedIn ? <LoginPage /> : <Redirect to="/" />}
+        </Route>
+
+        <Route path="/signup" exact>
+          {!loggedIn ? <SignUpPage /> : <Redirect to="/" />}
+        </Route>
       </Switch>
     </>
   );
