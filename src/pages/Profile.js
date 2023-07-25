@@ -1,12 +1,28 @@
-import React, { useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { Navbar, Container, Form, Row, Col, Button } from "react-bootstrap";
 import "./Profile.css";
+import AuthContext from "../auth-context/auth-context";
 
 const Profile = () => {
   const [showForm, setShowForm] = useState(true);
 
   const fullNameRef = useRef();
   const profilePhotoURLRef = useRef();
+
+  const { userData } = useContext(AuthContext);
+
+  const incompleteUserData =
+    userData.displayName.trim().length === 0 ||
+    userData.photoUrl.trim().length === 0;
+
+  useEffect(() => {
+    const fillUserDataForm = async () => {
+      fullNameRef.current.value = await userData.displayName;
+      profilePhotoURLRef.current.value = await userData.photoUrl;
+    };
+
+    fillUserDataForm();
+  }, [userData.displayName, userData.photoUrl]);
 
   const handleUpdate = async (event) => {
     event.preventDefault();
@@ -49,11 +65,13 @@ const Profile = () => {
           <h3>Winners never quit! Quitters never quit!</h3>
         </Container>
         <Container className="justify-content-end">
-          <p className="border rounded px-2 py-1 bg-light text-dark mt-2">
-            Your profile is 64% complete. A complete Profile has higher chances
-            of landing a job.{" "}
-            <span onClick={() => setShowForm(true)}>Complete now</span>
-          </p>
+          {incompleteUserData && (
+            <p className="border rounded px-2 py-1 bg-light text-dark mt-2">
+              Your profile is 64% complete. A complete Profile has higher
+              chances of landing a job.{" "}
+              <span onClick={() => setShowForm(true)}>Complete now</span>
+            </p>
+          )}
         </Container>
       </Navbar>
 
