@@ -12,8 +12,8 @@ const Profile = () => {
   const { userData } = useContext(AuthContext);
 
   const incompleteUserData =
-    userData.displayName.trim().length === 0 ||
-    userData.photoUrl.trim().length === 0;
+    !!userData.displayName.trim().length === 0 ||
+    !!userData.photoUrl.trim().length === 0;
 
   useEffect(() => {
     const fillUserDataForm = async () => {
@@ -58,6 +58,27 @@ const Profile = () => {
     }
   };
 
+  const handleVerifyEmail = async () => {
+    try {
+      const token = await localStorage.getItem("token");
+      const response = await fetch(
+        "https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=AIzaSyAvBSC-wnMSr4LTyhMGqXtQdczeBxPzacw",
+        {
+          method: "POST",
+          body: JSON.stringify({ requestType: "VERIFY_EMAIL", idToken: token }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorResponse = await response.json();
+        throw new Error(errorResponse.error.message);
+      }
+      const data = await response.json();
+      console.log(data);
+    } catch (error) {
+      alert(error.message);
+    }
+  };
   return (
     <>
       <Navbar className="m-0 text-white bg-secondary">
@@ -65,6 +86,11 @@ const Profile = () => {
           <h3>Winners never quit! Quitters never quit!</h3>
         </Container>
         <Container className="justify-content-end">
+          {!userData.emailVerified && (
+            <Button variant="danger" onClick={handleVerifyEmail}>
+              Verify Email
+            </Button>
+          )}
           {incompleteUserData && (
             <p className="border rounded px-2 py-1 bg-light text-dark mt-2">
               Your profile is 64% complete. A complete Profile has higher

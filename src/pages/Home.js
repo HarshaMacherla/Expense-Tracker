@@ -7,8 +7,8 @@ const Home = () => {
   const { userData } = useContext(AuthContext);
 
   const incompleteUserData =
-    userData.displayName.trim().length === 0 ||
-    userData.photoUrl.trim().length === 0;
+    !!userData.displayName.trim().length === 0 ||
+    !!userData.photoUrl.trim().length === 0;
 
   return (
     <Navbar className="m-0 text-white bg-secondary">

@@ -8,6 +8,7 @@ export const AuthContextProvider = (props) => {
   const [userData, setUserData] = useState({
     displayName: "",
     photoUrl: "",
+    emailVerified: false,
   });
 
   const [login, setLogin] = useState(true);
@@ -15,7 +16,7 @@ export const AuthContextProvider = (props) => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const token = localStorage.getItem("token");
+        const token = await localStorage.getItem("token");
         const response = await fetch(
           "https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=AIzaSyAvBSC-wnMSr4LTyhMGqXtQdczeBxPzacw",
           {
@@ -30,10 +31,21 @@ export const AuthContextProvider = (props) => {
         }
 
         const data = await response.json();
-        setUserData(() => ({
-          displayName: data.users[0].displayName,
-          photoUrl: data.users[0].photoUrl,
-        }));
+        console.log(data);
+        if (
+          data.users &&
+          data.users.length > 0 &&
+          data.users[0].displayName &&
+          data.users[0].photoUrl
+        ) {
+          setUserData({
+            displayName: data.users[0].displayName,
+            photoUrl: data.users[0].photoUrl,
+            emailVerified: data.users[0].emailVerified,
+          });
+        } else {
+          console.log("User data is missing displayName and/or photoUrl.");
+        }
       } catch (error) {
         alert(error.message);
       }
