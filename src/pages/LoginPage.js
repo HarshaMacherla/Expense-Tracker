@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
 import { Button, Form } from "react-bootstrap";
 import AuthContext from "../auth-context/auth-context";
+import { NavLink } from "react-router-dom/cjs/react-router-dom.min";
 
 const LoginPage = () => {
   const emailRef = React.useRef();
@@ -71,7 +72,7 @@ const LoginPage = () => {
         </div>
 
         <div className="text-center">
-          <a href="/">Forgot password?</a>
+          <NavLink to="/forgot-password">Forgot Password? Reset</NavLink>
         </div>
       </Form>
 

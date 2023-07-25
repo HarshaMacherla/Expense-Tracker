@@ -10,6 +10,7 @@ import {
 } from "react-router-dom/cjs/react-router-dom.min";
 import Home from "./pages/Home";
 import Profile from "./pages/Profile";
+import ForgotPassword from "./pages/ForgotPassword";
 
 const App = () => {
   const { login, loggedIn } = useContext(AuthContext);
@@ -29,6 +30,10 @@ const App = () => {
 
         <Route path="/profile" exact>
           {loggedIn ? <Profile /> : <Redirect to="/login" />}
+        </Route>
+
+        <Route path="/forgot-password" exact>
+          <ForgotPassword />
         </Route>
 
         <Route path="/login" exact>
