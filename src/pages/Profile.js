@@ -9,7 +9,7 @@ const Profile = () => {
   const fullNameRef = useRef();
   const profilePhotoURLRef = useRef();
 
-  const { userData } = useContext(AuthContext);
+  const { userData, setLoggedIn } = useContext(AuthContext);
 
   const incompleteUserData =
     !!userData.displayName.trim().length === 0 ||
@@ -79,6 +79,11 @@ const Profile = () => {
       alert(error.message);
     }
   };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setLoggedIn(false);
+  };
   return (
     <>
       <Navbar className="m-0 text-white bg-secondary">
@@ -98,6 +103,9 @@ const Profile = () => {
               <span onClick={() => setShowForm(true)}>Complete now</span>
             </p>
           )}
+          <Button variant="dark" className="text-white" onClick={handleLogout}>
+            Logout
+          </Button>
         </Container>
       </Navbar>
 
