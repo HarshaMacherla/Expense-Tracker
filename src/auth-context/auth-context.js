@@ -11,6 +11,34 @@ const expenseReducre = (state, action) => {
         totalCost: state.totalCost + parseInt(action.item.amount),
       };
 
+    case "EDIT":
+      const index = state.expenses.findIndex(
+        (expense) => expense.id === action.item.id
+      );
+      return {
+        ...state,
+        totalCost:
+          state.totalCost -
+          parseInt(state.expenses[index].amount) +
+          parseInt(action.item.amount),
+        expenses: state.expenses.map((expense) => {
+          if (expense.id === action.item.id) {
+            return action.item;
+          } else {
+            return expense;
+          }
+        }),
+      };
+
+    case "DELETE":
+      return {
+        ...state,
+        totalCost: state.totalCost - parseInt(action.item.amount),
+        expenses: state.expenses.filter(
+          (expense) => expense.id !== action.item.id
+        ),
+      };
+
     case "SET_EXPENSES":
       return {
         ...state,
@@ -38,9 +66,19 @@ export const AuthContextProvider = (props) => {
     expenseDispatch({ type: "ADD", item: expense });
   };
 
+  const handleEditExpense = (expense) => {
+    expenseDispatch({ type: "EDIT", item: expense });
+  };
+
+  const handleDeleteExpense = (expense) => {
+    expenseDispatch({ type: "DELETE", item: expense });
+  };
+
   const [expensesState, expenseDispatch] = useReducer(expenseReducre, {
     expenses: [],
     addExpense: handleAddExpense,
+    editExpense: handleEditExpense,
+    deleteExpense: handleDeleteExpense,
     totalCost: 0,
   });
 
@@ -93,16 +131,20 @@ export const AuthContextProvider = (props) => {
           throw new Error(errorResponse.error.message);
         }
 
-        const data = await response.json();
+        let expensesArray = [];
         let totalCost = 0;
-        const expensesArray = Object.keys(data).map((key) => {
-          totalCost += parseInt(data[key].amount);
-          return {
-            id: key,
-            ...data[key],
-          };
-        });
 
+        const data = await response.json();
+
+        if (data !== null) {
+          expensesArray = Object.keys(data).map((key) => {
+            totalCost += parseInt(data[key].amount);
+            return {
+              id: key,
+              ...data[key],
+            };
+          });
+        }
         expenseDispatch({
           type: "SET_EXPENSES",
           expenses: expensesArray,

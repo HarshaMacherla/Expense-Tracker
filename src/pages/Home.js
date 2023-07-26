@@ -1,4 +1,4 @@
-import React, { useContext, useRef } from "react";
+import React, { useContext, useRef, useState } from "react";
 import { Button, Container, Form, Navbar, Table } from "react-bootstrap";
 import { NavLink } from "react-router-dom/cjs/react-router-dom.min";
 import AuthContext from "../auth-context/auth-context";
@@ -10,9 +10,47 @@ const Home = () => {
   const expenseCategoryRef = useRef();
   const expenseAmountRef = useRef();
 
+  const [edit, setEdit] = useState(false);
+
   const incompleteUserData =
     !!userData.displayName.trim().length === 0 ||
     !!userData.photoUrl.trim().length === 0;
+
+  const handleCurrentExpense = (expense) => {
+    expenseDescriptionRef.current.value = expense.description;
+    expenseCategoryRef.current.value = expense.category;
+    expenseAmountRef.current.value = expense.amount;
+    setEdit((prev) => !prev);
+  };
+
+  const expenses = expensesState.expenses.map((expense) => (
+    <tr key={expense.id}>
+      <td>{expense.description}</td>
+      <td>{expense.category}</td>
+      <td>{expense.amount}</td>
+      <td>
+        <Button
+          variant="outline-primary"
+          size="sm"
+          onClick={() => {
+            localStorage.setItem("editId", expense.id);
+            handleCurrentExpense(expense);
+          }}
+        >
+          Edit Expense
+        </Button>
+      </td>
+      <td>
+        <Button
+          variant="danger"
+          size="sm"
+          onClick={() => handleDelete(expense)}
+        >
+          Delete Expense
+        </Button>
+      </td>
+    </tr>
+  ));
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -21,11 +59,21 @@ const Home = () => {
 
   const addExpense = async (event) => {
     event.preventDefault();
-
     const description = expenseDescriptionRef.current.value;
     const category = expenseCategoryRef.current.value;
     const amount = expenseAmountRef.current.value;
-
+    if (description.trim().length === 0) {
+      alert("Enter the expense name");
+      return;
+    }
+    if (category.trim().length === 0) {
+      alert("Select the category of the expense");
+      return;
+    }
+    if (amount.trim().length === 0) {
+      alert("Enter the expense amount");
+      return;
+    }
     try {
       const response = await fetch(
         "https://expense-tracker-authenti-1ecaa-default-rtdb.firebaseio.com/expenses.json",
@@ -34,12 +82,10 @@ const Home = () => {
           body: JSON.stringify({ description, category, amount }),
         }
       );
-
       if (!response.ok) {
         const errorResponse = await response.json();
         throw new Error(errorResponse.error.message);
       }
-
       const data = await response.json();
       expensesState.addExpense({
         id: data.name,
@@ -50,10 +96,61 @@ const Home = () => {
     } catch (error) {
       alert(error.message);
     }
-
     expenseDescriptionRef.current.value = "";
     expenseCategoryRef.current.value = "";
     expenseAmountRef.current.value = "";
+  };
+
+  const handleEdit = async () => {
+    try {
+      const id = localStorage.getItem("editId");
+      const response = await fetch(
+        `https://expense-tracker-authenti-1ecaa-default-rtdb.firebaseio.com/expenses/${id}.json`,
+        {
+          method: "PUT",
+          body: JSON.stringify({
+            description: expenseDescriptionRef.current.value,
+            category: expenseCategoryRef.current.value,
+            amount: expenseAmountRef.current.value,
+          }),
+        }
+      );
+      if (!response.ok) {
+        const errorResponse = await response.json();
+        throw new Error(errorResponse.error.message);
+      }
+      const data = await response.json();
+      console.log(data);
+      expensesState.editExpense({
+        id: localStorage.getItem("editId"),
+        ...data,
+      });
+      setEdit(false);
+      expenseDescriptionRef.current.value = "";
+      expenseCategoryRef.current.value = "";
+      expenseAmountRef.current.value = "";
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  const handleDelete = async (expense) => {
+    try {
+      const response = await fetch(
+        `https://expense-tracker-authenti-1ecaa-default-rtdb.firebaseio.com/expenses/${expense.id}.json`,
+        {
+          method: "DELETE",
+        }
+      );
+      if (!response.ok) {
+        const errorResponse = await response.json();
+        throw new Error(errorResponse.error.message);
+      }
+      expensesState.deleteExpense(expense);
+      console.log("Expense deleted");
+    } catch (error) {
+      alert(error.message);
+    }
   };
 
   return (
@@ -100,10 +197,10 @@ const Home = () => {
             id="expenseCategory"
             ref={expenseCategoryRef}
           >
-            <option value="food">Food</option>
-            <option value="fuel">Fuel</option>
-            <option value="travel">Travel</option>
-            <option value="gadgets">Gadgets</option>
+            <option value="Food">Food</option>
+            <option value="Fuel">Fuel</option>
+            <option value="Travel">Travel</option>
+            <option value="Gadget">Gadget</option>
           </Form.Control>
 
           <Form.Label className="mt-3" htmlFor="expenseAmount">
@@ -117,36 +214,38 @@ const Home = () => {
           />
 
           <Container className="text-center">
-            <Button variant="info" className="mt-3" type="submit">
-              Add Expense
-            </Button>
+            {!edit && (
+              <Button variant="info" className="mt-3" type="submit">
+                Add Expense
+              </Button>
+            )}
+            {edit && (
+              <Button variant="primary" className="mt-3" onClick={handleEdit}>
+                Confirm Edit
+              </Button>
+            )}
           </Container>
         </Form>
       </Container>
 
       {expensesState.totalCost !== 0 && (
         <Container>
-          <Table bordered className="text-center">
+          <Table className="text-center">
             <thead>
               <tr>
                 <th>Expense Name</th>
                 <th>Category</th>
                 <th>Amount</th>
+                <th></th>
+                <th></th>
               </tr>
             </thead>
-            <tbody>
-              {expensesState.expenses.map((expense) => (
-                <tr key={expense.id}>
-                  <td>{expense.description}</td>
-                  <td>{expense.category}</td>
-                  <td>{expense.amount}</td>
-                </tr>
-              ))}
-            </tbody>
+            <tbody>{expenses}</tbody>
             <tfoot>
               <tr>
-                <th colSpan={2}>Total</th>
-                <td>Rs. {expensesState.totalCost}</td>
+                <td colSpan={5} className="text-end">
+                  <strong>Total: </strong>Rs. {expensesState.totalCost}
+                </td>
               </tr>
             </tfoot>
           </Table>
