@@ -1,6 +1,27 @@
-import React, { createContext, useEffect, useState } from "react";
+import React, { createContext, useEffect, useReducer, useState } from "react";
 
 const AuthContext = createContext();
+
+const expenseReducre = (state, action) => {
+  switch (action.type) {
+    case "ADD":
+      return {
+        ...state,
+        expenses: [...state.expenses, action.item],
+        totalCost: state.totalCost + parseInt(action.item.amount),
+      };
+
+    case "SET_EXPENSES":
+      return {
+        ...state,
+        expenses: action.expenses,
+        totalCost: action.totalCost,
+      };
+
+    default:
+      return state;
+  }
+};
 
 export const AuthContextProvider = (props) => {
   const [loggedIn, setLoggedIn] = useState(!!localStorage.getItem("token"));
@@ -12,6 +33,16 @@ export const AuthContextProvider = (props) => {
   });
 
   const [login, setLogin] = useState(true);
+
+  const handleAddExpense = (expense) => {
+    expenseDispatch({ type: "ADD", item: expense });
+  };
+
+  const [expensesState, expenseDispatch] = useReducer(expenseReducre, {
+    expenses: [],
+    addExpense: handleAddExpense,
+    totalCost: 0,
+  });
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -51,14 +82,54 @@ export const AuthContextProvider = (props) => {
       }
     };
 
+    const fetchExpenses = async () => {
+      try {
+        const response = await fetch(
+          "https://expense-tracker-authenti-1ecaa-default-rtdb.firebaseio.com/expenses.json"
+        );
+
+        if (!response.ok) {
+          const errorResponse = await response.json();
+          throw new Error(errorResponse.error.message);
+        }
+
+        const data = await response.json();
+        let totalCost = 0;
+        const expensesArray = Object.keys(data).map((key) => {
+          totalCost += parseInt(data[key].amount);
+          return {
+            id: key,
+            ...data[key],
+          };
+        });
+
+        expenseDispatch({
+          type: "SET_EXPENSES",
+          expenses: expensesArray,
+          totalCost,
+        });
+      } catch (error) {
+        alert(error.message);
+      }
+    };
+
     if (loggedIn) {
       fetchUserData();
+      fetchExpenses();
     }
   }, [loggedIn]);
 
   return (
     <AuthContext.Provider
-      value={{ login, setLogin, loggedIn, setLoggedIn, userData, setUserData }}
+      value={{
+        login,
+        setLogin,
+        loggedIn,
+        setLoggedIn,
+        userData,
+        setUserData,
+        expensesState,
+      }}
     >
       {props.children}
     </AuthContext.Provider>

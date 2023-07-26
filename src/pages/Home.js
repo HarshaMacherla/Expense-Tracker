@@ -1,17 +1,14 @@
-import React, { useContext, useRef, useState } from "react";
+import React, { useContext, useRef } from "react";
 import { Button, Container, Form, Navbar, Table } from "react-bootstrap";
 import { NavLink } from "react-router-dom/cjs/react-router-dom.min";
 import AuthContext from "../auth-context/auth-context";
 
 const Home = () => {
-  const { userData, setLoggedIn } = useContext(AuthContext);
+  const { userData, setLoggedIn, expensesState } = useContext(AuthContext);
 
   const expenseDescriptionRef = useRef();
   const expenseCategoryRef = useRef();
   const expenseAmountRef = useRef();
-
-  const [addedExpenses, setAddedExpenses] = useState([]);
-  const [totalAmount, setTotalAmount] = useState(0);
 
   const incompleteUserData =
     !!userData.displayName.trim().length === 0 ||
@@ -22,16 +19,37 @@ const Home = () => {
     setLoggedIn(false);
   };
 
-  const addExpense = (event) => {
+  const addExpense = async (event) => {
     event.preventDefault();
 
     const description = expenseDescriptionRef.current.value;
     const category = expenseCategoryRef.current.value;
     const amount = expenseAmountRef.current.value;
 
-    setTotalAmount((prev) => prev + parseInt(amount));
+    try {
+      const response = await fetch(
+        "https://expense-tracker-authenti-1ecaa-default-rtdb.firebaseio.com/expenses.json",
+        {
+          method: "POST",
+          body: JSON.stringify({ description, category, amount }),
+        }
+      );
 
-    setAddedExpenses((prev) => [...prev, { description, category, amount }]);
+      if (!response.ok) {
+        const errorResponse = await response.json();
+        throw new Error(errorResponse.error.message);
+      }
+
+      const data = await response.json();
+      expensesState.addExpense({
+        id: data.name,
+        description,
+        category,
+        amount,
+      });
+    } catch (error) {
+      alert(error.message);
+    }
 
     expenseDescriptionRef.current.value = "";
     expenseCategoryRef.current.value = "";
@@ -106,7 +124,7 @@ const Home = () => {
         </Form>
       </Container>
 
-      {totalAmount !== 0 && (
+      {expensesState.totalCost !== 0 && (
         <Container>
           <Table bordered className="text-center">
             <thead>
@@ -117,10 +135,8 @@ const Home = () => {
               </tr>
             </thead>
             <tbody>
-              {addedExpenses.map((expense) => (
-                <tr
-                  key={`${expense.description}-${expense.category}-${expense.amount}`}
-                >
+              {expensesState.expenses.map((expense) => (
+                <tr key={expense.id}>
                   <td>{expense.description}</td>
                   <td>{expense.category}</td>
                   <td>{expense.amount}</td>
@@ -130,7 +146,7 @@ const Home = () => {
             <tfoot>
               <tr>
                 <th colSpan={2}>Total</th>
-                <td>Rs. {totalAmount}</td>
+                <td>Rs. {expensesState.totalCost}</td>
               </tr>
             </tfoot>
           </Table>
