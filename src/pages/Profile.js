@@ -1,7 +1,8 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Navbar, Container, Form, Row, Col, Button } from "react-bootstrap";
 import "./Profile.css";
-import AuthContext from "../auth-context/auth-context";
+import { useDispatch, useSelector } from "react-redux";
+import { authActions } from "../store/auth-slice";
 
 const Profile = () => {
   const [showForm, setShowForm] = useState(true);
@@ -9,7 +10,9 @@ const Profile = () => {
   const fullNameRef = useRef();
   const profilePhotoURLRef = useRef();
 
-  const { userData, setLoggedIn } = useContext(AuthContext);
+  const dispatch = useDispatch();
+
+  const userData = useSelector((state) => state.userData);
 
   const incompleteUserData =
     !!userData.displayName.trim().length === 0 ||
@@ -82,7 +85,7 @@ const Profile = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    setLoggedIn(false);
+    dispatch(authActions.loggedOut());
   };
   return (
     <>

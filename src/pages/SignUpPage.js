@@ -1,13 +1,14 @@
-import React, { useContext } from "react";
+import React from "react";
 import { Button, Form } from "react-bootstrap";
-import AuthContext from "../auth-context/auth-context";
+import { useDispatch } from "react-redux";
+import { authActions } from "../store/auth-slice";
 
 const SignUpPage = () => {
   const emailRef = React.useRef();
   const passwordRef = React.useRef();
   const confirmPasswordRef = React.useRef();
 
-  const { setLogin, setLoggedIn } = useContext(AuthContext);
+  const dispatch = useDispatch();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -49,7 +50,7 @@ const SignUpPage = () => {
       const data = await response.json();
       localStorage.setItem("token", data.idToken);
       console.log("SingedUp Successfully");
-      setLoggedIn(true);
+      dispatch(authActions.loggedIn());
     } catch (error) {
       alert(error.message);
     }
@@ -94,7 +95,7 @@ const SignUpPage = () => {
           className="mx-auto text-center border rounded p-2 d-block"
           style={{ width: "400px" }}
           onClick={() => {
-            setLogin(true);
+            dispatch(authActions.login())
           }}
         >
           Have an account? Login

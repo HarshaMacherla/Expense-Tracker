@@ -1,13 +1,14 @@
-import React, { useContext } from "react";
+import React from "react";
 import { Button, Form } from "react-bootstrap";
-import AuthContext from "../auth-context/auth-context";
 import { NavLink } from "react-router-dom/cjs/react-router-dom.min";
+import { useDispatch } from "react-redux";
+import { authActions } from "../store/auth-slice";
 
 const LoginPage = () => {
   const emailRef = React.useRef();
   const passwordRef = React.useRef();
 
-  const { setLogin, setLoggedIn } = useContext(AuthContext);
+  const dispatch = useDispatch();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -40,7 +41,7 @@ const LoginPage = () => {
       const token = data.idToken;
       localStorage.setItem("token", token);
       console.log("Login Successful");
-      setLoggedIn(true);
+      dispatch(authActions.loggedIn());
     } catch (error) {
       alert(error.message);
     }
@@ -81,7 +82,7 @@ const LoginPage = () => {
           variant="secondary"
           className="mx-auto text-center border rounded p-2 d-block"
           style={{ width: "400px" }}
-          onClick={() => setLogin(false)}
+          onClick={() => dispatch(authActions.signup())}
         >
           Don't have an account? Register
         </Button>

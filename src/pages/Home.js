@@ -1,10 +1,14 @@
-import React, { useContext, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { Button, Container, Form, Navbar, Table } from "react-bootstrap";
 import { NavLink } from "react-router-dom/cjs/react-router-dom.min";
-import AuthContext from "../auth-context/auth-context";
+import { useDispatch, useSelector } from "react-redux";
+import { authActions } from "../store/auth-slice";
+import { expenseActions } from "../store/expenses-slice";
 
 const Home = () => {
-  const { userData, setLoggedIn, expensesState } = useContext(AuthContext);
+  const userData = useSelector((state) => state.userData);
+
+  const dispatch = useDispatch();
 
   const expenseDescriptionRef = useRef();
   const expenseCategoryRef = useRef();
@@ -23,7 +27,9 @@ const Home = () => {
     setEdit((prev) => !prev);
   };
 
-  const expenses = expensesState.expenses.map((expense) => (
+  const expensesData = useSelector((state) => state.expense);
+
+  const expenses = expensesData.expenses.map((expense) => (
     <tr key={expense.id}>
       <td>{expense.description}</td>
       <td>{expense.category}</td>
@@ -54,7 +60,7 @@ const Home = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    setLoggedIn(false);
+    dispatch(authActions.loggedOut());
   };
 
   const addExpense = async (event) => {
@@ -87,12 +93,14 @@ const Home = () => {
         throw new Error(errorResponse.error.message);
       }
       const data = await response.json();
-      expensesState.addExpense({
-        id: data.name,
-        description,
-        category,
-        amount,
-      });
+      dispatch(
+        expenseActions.addExpense({
+          id: data.name,
+          description,
+          category,
+          amount,
+        })
+      );
     } catch (error) {
       alert(error.message);
     }
@@ -121,10 +129,12 @@ const Home = () => {
       }
       const data = await response.json();
       console.log(data);
-      expensesState.editExpense({
-        id: localStorage.getItem("editId"),
-        ...data,
-      });
+      dispatch(
+        expenseActions.updateExpense({
+          id: localStorage.getItem("editId"),
+          ...data,
+        })
+      );
       setEdit(false);
       expenseDescriptionRef.current.value = "";
       expenseCategoryRef.current.value = "";
@@ -146,7 +156,7 @@ const Home = () => {
         const errorResponse = await response.json();
         throw new Error(errorResponse.error.message);
       }
-      expensesState.deleteExpense(expense);
+      dispatch(expenseActions.deleteExpense(expense));
       console.log("Expense deleted");
     } catch (error) {
       alert(error.message);
@@ -228,7 +238,7 @@ const Home = () => {
         </Form>
       </Container>
 
-      {expensesState.totalCost !== 0 && (
+      {expensesData.totalCost !== 0 && (
         <Container>
           <Table className="text-center">
             <thead>
@@ -244,7 +254,7 @@ const Home = () => {
             <tfoot>
               <tr>
                 <td colSpan={5} className="text-end">
-                  <strong>Total: </strong>Rs. {expensesState.totalCost}
+                  <strong>Total: </strong>Rs. {expensesData.totalCost}
                 </td>
               </tr>
             </tfoot>
