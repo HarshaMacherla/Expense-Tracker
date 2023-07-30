@@ -8,6 +8,8 @@ import { expenseActions } from "../store/expenses-slice";
 const Home = () => {
   const userData = useSelector((state) => state.userData);
 
+  const totalCost = useSelector((state) => state.expense.totalCost);
+
   const dispatch = useDispatch();
 
   const expenseDescriptionRef = useRef();
@@ -177,10 +179,11 @@ const Home = () => {
             </p>
           )}
           {!incompleteUserData && (
-            <p className="bg-white px-2 my-2 border rounded">
+            <p className="bg-white px-2 my-2 mx-2 border rounded">
               <NavLink to="/profile">Click Here to view your Profile</NavLink>
             </p>
           )}
+          {totalCost > 10000 && <Button>Activate Premium</Button>}
           <Button
             variant="dark"
             className="text-white mx-2"
