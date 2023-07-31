@@ -14,6 +14,8 @@ const Profile = () => {
 
   const userData = useSelector((state) => state.userData);
 
+  const darkMode = useSelector((state) => state.theme.darkMode);
+
   const incompleteUserData =
     !!userData.displayName.trim().length === 0 ||
     !!userData.photoUrl.trim().length === 0;
@@ -116,7 +118,9 @@ const Profile = () => {
         <Form onSubmit={handleUpdate} className="border-bottom rounded m-5 p-3">
           <Row>
             <Col>
-              <h3 className="pb-2">Contact Details</h3>
+              <h3 className={darkMode ? "pb-2 text-light" : "pb-2"}>
+                Contact Details
+              </h3>
             </Col>
             <Col className="text-right d-flex justify-content-end">
               <Button

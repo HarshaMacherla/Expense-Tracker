@@ -4,19 +4,31 @@ import { NavLink } from "react-router-dom/cjs/react-router-dom.min";
 import { useDispatch, useSelector } from "react-redux";
 import { authActions } from "../store/auth-slice";
 import { expenseActions } from "../store/expenses-slice";
+import { themeActions } from "../store/theme-slice";
+import DownloadExpenses from "../components/DownloadExpenses";
 
 const Home = () => {
+  const dispatch = useDispatch();
+
   const userData = useSelector((state) => state.userData);
 
   const totalCost = useSelector((state) => state.expense.totalCost);
 
-  const dispatch = useDispatch();
+  const darkMode = useSelector((state) => state.theme.darkMode);
+
+  if (darkMode) {
+    document.getElementsByTagName("body")[0].style.background = "black";
+  } else {
+    document.getElementsByTagName("body")[0].style.background = "white";
+  }
 
   const expenseDescriptionRef = useRef();
   const expenseCategoryRef = useRef();
   const expenseAmountRef = useRef();
 
   const [edit, setEdit] = useState(false);
+
+  const [showThemeToggle, setShowThemeToggle] = useState(false);
 
   const incompleteUserData =
     !!userData.displayName.trim().length === 0 ||
@@ -165,9 +177,26 @@ const Home = () => {
     }
   };
 
+  const handleActivatePremium = () => {
+    setShowThemeToggle(true);
+  };
+
+  const handleDeactivatePremium = () => {
+    setShowThemeToggle(false);
+    dispatch(themeActions.disableDarkTheme());
+  };
+
+  const handleThemeToggle = () => {
+    dispatch(themeActions.toggleThemeMode());
+  };
+
   return (
     <>
-      <Navbar className="m-0 text-white bg-secondary">
+      <Navbar
+        className={
+          darkMode ? "m-0 text-white bg-dark" : "m-0 text-white bg-secondary"
+        }
+      >
         <Container>
           <h3>Welcome to Expense Tracker!!!</h3>
         </Container>
@@ -183,9 +212,16 @@ const Home = () => {
               <NavLink to="/profile">Click Here to view your Profile</NavLink>
             </p>
           )}
-          {totalCost > 10000 && <Button>Activate Premium</Button>}
+          {totalCost > 10000 &&
+            (!showThemeToggle ? (
+              <Button onClick={handleActivatePremium}>Activate Premium</Button>
+            ) : (
+              <Button onClick={handleDeactivatePremium}>
+                Deactivate Premium
+              </Button>
+            ))}
           <Button
-            variant="dark"
+            variant={darkMode ? "outline-light" : "dark"}
             className="text-white mx-2"
             onClick={handleLogout}
           >
@@ -193,8 +229,37 @@ const Home = () => {
           </Button>
         </Container>
       </Navbar>
+      {showThemeToggle && (
+        <Container className="d-flex justify-content-end">
+          <div className="form-check form-switch">
+            <input
+              className="form-check-input"
+              type="checkbox"
+              role="switch"
+              id="flexSwitchCheckChecked"
+              checked={darkMode}
+              onChange={handleThemeToggle}
+            />
+            <label
+              className={
+                darkMode ? "form-check-label text-white" : "form-check-label"
+              }
+              htmlFor="flexSwitchCheckChecked"
+            >
+              {darkMode ? "Dark Theme Enabled" : "Light Theme Enabled"}
+            </label>
+          </div>
+        </Container>
+      )}
       <Container>
-        <Form onSubmit={addExpense} className="border rounded m-5 p-3 bg-light">
+        <Form
+          onSubmit={addExpense}
+          className={
+            darkMode
+              ? "border border-dark rounded m-5 p-3 bg-dark text-white"
+              : "border rounded m-5 p-3 bg-light"
+          }
+        >
           <Form.Label htmlFor="expenseName">Expense</Form.Label>
           <Form.Control
             type="text"
@@ -243,7 +308,7 @@ const Home = () => {
 
       {expensesData.totalCost !== 0 && (
         <Container>
-          <Table className="text-center">
+          <Table variant={darkMode ? "dark" : "light"} className="text-center">
             <thead>
               <tr>
                 <th>Expense Name</th>
@@ -264,6 +329,7 @@ const Home = () => {
           </Table>
         </Container>
       )}
+      {showThemeToggle && <DownloadExpenses />}
     </>
   );
 };
