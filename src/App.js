@@ -1,31 +1,30 @@
-import React, { useEffect } from "react";
-import "./App.css";
-import LoginPage from "./pages/LoginPage";
-import SignUpPage from "./pages/SignUpPage";
+import { useDispatch, useSelector } from "react-redux";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 import {
   Redirect,
   Route,
   Switch,
 } from "react-router-dom/cjs/react-router-dom.min";
 import Home from "./pages/Home";
-import Profile from "./pages/Profile";
-import ForgotPassword from "./pages/ForgotPassword";
-import { useDispatch, useSelector } from "react-redux";
+import { Suspense, lazy, useEffect } from "react";
 import { expenseActions } from "./store/expenses-slice";
-import { userDataActions } from "./store/user-data-slice";
+import { userDataActions } from "./store/userData-slice";
+import PasswordReset from "./pages/PasswordReset";
 
 const App = () => {
-  const loggedIn = useSelector((state) => state.auth.isAuthenticated);
-  const login = useSelector((state) => state.auth.isLogin);
+  const loggedIn = useSelector((state) => state.auth.loggedIn);
 
   const dispatch = useDispatch();
+
+  const Profile = lazy(() => import("./pages/Profile"));
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const token = await localStorage.getItem("token");
         const response = await fetch(
-          "https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=AIzaSyAvBSC-wnMSr4LTyhMGqXtQdczeBxPzacw",
+          "https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=AIzaSyAa7TyUbpqm_Cnm2qCwF5FwS96ztOQYo2M",
           {
             method: "POST",
             body: JSON.stringify({ idToken: token }),
@@ -38,16 +37,14 @@ const App = () => {
         }
 
         const data = await response.json();
-        console.log(data);
         if (
           data.users &&
           data.users.length > 0 &&
           data.users[0].displayName &&
           data.users[0].photoUrl
         ) {
-          console.log(data.users[0]);
           dispatch(
-            userDataActions.setUserData({
+            userDataActions.loadUserData({
               displayName: data.users[0].displayName,
               photoUrl: data.users[0].photoUrl,
               emailVerified: data.users[0].emailVerified,
@@ -60,18 +57,17 @@ const App = () => {
         alert(error.message);
       }
     };
-
     const fetchExpenses = async () => {
       try {
         const response = await fetch(
-          "https://expense-tracker-authenti-1ecaa-default-rtdb.firebaseio.com/expenses.json"
+          `https://expense-tracker-5c1a4-default-rtdb.firebaseio.com/expenses/${localStorage.getItem(
+            "userID"
+          )}.json`
         );
-
         if (!response.ok) {
           const errorResponse = await response.json();
           throw new Error(errorResponse.error.message);
         }
-
         let expensesArray = [];
         let totalCost = 0;
 
@@ -82,51 +78,51 @@ const App = () => {
             totalCost += parseInt(data[key].amount);
             return {
               id: key,
-              ...data[key],
+              name: data[key].name,
+              category: data[key].category,
+              amount: data[key].amount,
             };
           });
         }
         dispatch(
-          expenseActions.loadExpense({ expenses: expensesArray, totalCost })
+          expenseActions.loadExpenses({
+            expenses: expensesArray,
+            totalExpensesAmount: totalCost,
+          })
         );
       } catch (error) {
         alert(error.message);
       }
     };
-
     if (loggedIn) {
       fetchUserData();
       fetchExpenses();
     }
-  }, [dispatch, loggedIn]);
+  }, [loggedIn, dispatch]);
 
   return (
     <>
-      {!loggedIn && login ? (
-        <Redirect to="/login" />
-      ) : (
-        <Redirect to="/signup" />
-      )}
-
       <Switch>
         <Route path="/" exact>
           {loggedIn ? <Home /> : <Redirect to="/login" />}
         </Route>
-
         <Route path="/profile" exact>
-          {loggedIn ? <Profile /> : <Redirect to="/login" />}
+          {loggedIn ? (
+            <Suspense fallback={<p>Loading...</p>}>
+              <Profile />
+            </Suspense>
+          ) : (
+            <Redirect to="/login" />
+          )}
         </Route>
-
-        <Route path="/forgot-password" exact>
-          <ForgotPassword />
-        </Route>
-
         <Route path="/login" exact>
-          {!loggedIn ? <LoginPage /> : <Redirect to="/" />}
+          {!loggedIn ? <Login /> : <Redirect to="/" />}
         </Route>
-
         <Route path="/signup" exact>
-          {!loggedIn ? <SignUpPage /> : <Redirect to="/" />}
+          {!loggedIn ? <Signup /> : <Redirect to="/" />}
+        </Route>
+        <Route path="/password-reset" exact>
+          {!loggedIn ? <PasswordReset /> : <Redirect to="/" />}
         </Route>
       </Switch>
     </>

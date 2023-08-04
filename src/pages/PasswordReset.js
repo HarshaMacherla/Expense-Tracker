@@ -1,9 +1,12 @@
 import React, { useRef, useState } from "react";
-import { Button, Container, Form, Navbar } from "react-bootstrap";
-import { NavLink } from "react-router-dom/cjs/react-router-dom.min";
+import { Button, Container, Form } from "react-bootstrap";
+import { NavLink, useHistory } from "react-router-dom/cjs/react-router-dom.min";
+import NavBar from "../components/Navigation/NavBar";
 
-const ForgotPassword = () => {
+const PasswordReset = () => {
   const emailRef = useRef();
+
+  const history = useHistory();
 
   const [loading, setLoading] = useState(false);
 
@@ -14,7 +17,7 @@ const ForgotPassword = () => {
 
     try {
       const response = await fetch(
-        "https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=AIzaSyAvBSC-wnMSr4LTyhMGqXtQdczeBxPzacw",
+        "https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=AIzaSyAa7TyUbpqm_Cnm2qCwF5FwS96ztOQYo2M",
         {
           method: "POST",
           body: JSON.stringify({
@@ -33,15 +36,15 @@ const ForgotPassword = () => {
       setLoading(false);
       console.log(data);
       alert("A password reset link has been sent to your registered email");
+      history.push("/login");
     } catch (error) {
       alert(error.message);
+      setLoading(false);
     }
   };
   return (
     <>
-      <Navbar className="m-0 text-white bg-dark">
-        <h3 className="m-2">Expense Tracker</h3>
-      </Navbar>
+      <NavBar />
       <Container>
         {!loading && (
           <Form
@@ -50,7 +53,9 @@ const ForgotPassword = () => {
           >
             <Container className="text-center">
               <Form.Label htmlFor="email">
-                Enter the email you have used to register
+                <strong>
+                  Enter the registered email to reset your password
+                </strong>
               </Form.Label>
             </Container>
             <Form.Control
@@ -61,13 +66,13 @@ const ForgotPassword = () => {
             />
 
             <Container className="text-center my-3">
-              <Button variant="dark" type="submit">
+              <Button variant="secondary" type="submit">
                 Send Password Reset Link
               </Button>
             </Container>
 
             <Container className="text-center">
-              <NavLink to="/login">Already a user? Login</NavLink>
+              <NavLink to="/signup">Don't have an account? SignUp</NavLink>
             </Container>
           </Form>
         )}
@@ -77,4 +82,4 @@ const ForgotPassword = () => {
   );
 };
 
-export default ForgotPassword;
+export default PasswordReset;

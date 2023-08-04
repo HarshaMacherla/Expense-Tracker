@@ -1,0 +1,8 @@
+.expenses-table-container {
+  width: 80%;
+  background: rgb(243, 243, 243);
+}
+
+.table-rounded {
+  border-radius: 10px;
+}

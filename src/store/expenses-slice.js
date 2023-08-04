@@ -1,38 +1,53 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const expenseSlice = createSlice({
-  name: "expenses",
+  name: "expense",
   initialState: {
     expenses: [],
-    totalCost: 0,
+    totalExpensesAmount: 0,
   },
   reducers: {
     addExpense(state, action) {
-      state.expenses.push(action.payload);
-      state.totalCost += parseInt(action.payload.amount);
+      state.expenses.push({
+        id: action.payload.id,
+        name: action.payload.name,
+        category: action.payload.category,
+        amount: action.payload.amount,
+      });
+      state.totalExpensesAmount += action.payload.amount;
     },
-    deleteExpense(state, action) {
-      state.expenses = state.expenses.filter(
-        (expense) => expense.id !== action.payload.id
+
+    editExpense(state, action) {
+      const index = state.expenses.findIndex(
+        (expense) => expense.id === action.payload.id
       );
-      state.totalCost -= parseInt(action.payload.amount);
-    },
-    updateExpense(state, action) {
-      let updatedTotalCost = 0;
+      state.totalExpensesAmount =
+        state.totalExpensesAmount +
+        action.payload.amount -
+        state.expenses[index].amount;
       state.expenses = state.expenses.map((expense) => {
         if (expense.id === action.payload.id) {
-          updatedTotalCost =
-            state.totalCost - expense.amount + parseInt(action.payload.amount);
-          return action.payload;
+          return {
+            name: action.payload.name,
+            category: action.payload.category,
+            amount: action.payload.amount,
+          };
         } else {
           return expense;
         }
       });
-      state.totalCost = updatedTotalCost;
     },
-    loadExpense(state, action) {
+
+    loadExpenses(state, action) {
       state.expenses = action.payload.expenses;
-      state.totalCost = action.payload.totalCost;
+      state.totalExpensesAmount = action.payload.totalExpensesAmount;
+    },
+
+    deleteExpense(state, action) {
+      state.totalExpensesAmount -= action.payload.amount;
+      state.expenses = state.expenses.filter(
+        (expense) => expense.id !== action.payload.id
+      );
     },
   },
 });

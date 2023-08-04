@@ -2,7 +2,7 @@ import React from "react";
 import { Button, Container } from "react-bootstrap";
 import { useSelector } from "react-redux";
 
-const DownloadExpenses = () => {
+const DownloadCsv = () => {
   const data = useSelector((state) => state.expense.expenses);
 
   const convertArrayToCSV = (data) => {
@@ -42,4 +42,4 @@ const DownloadExpenses = () => {
   );
 };
 
-export default DownloadExpenses;
+export default DownloadCsv;

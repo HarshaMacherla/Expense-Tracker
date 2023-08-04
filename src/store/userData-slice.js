@@ -7,6 +7,10 @@ const userDataSlice = createSlice({
     setUserData(state, action) {
       state.displayName = action.payload.displayName;
       state.photoUrl = action.payload.photoUrl;
+    },
+    loadUserData(state, action) {
+      state.displayName = action.payload.displayName;
+      state.photoUrl = action.payload.photoUrl;
       state.emailVerified = action.payload.emailVerified;
     },
   },

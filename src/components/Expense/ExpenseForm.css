@@ -1,0 +1,10 @@
+.expense-form-control {
+  width: 60%;
+  background: rgb(243, 243, 243);
+}
+
+@media (max-width: 576px) {
+  .expense-form-control {
+    margin: 10px;
+  }
+}
