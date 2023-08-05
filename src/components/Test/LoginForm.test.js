@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import LoginForm from "./LoginForm";
 import { MemoryRouter } from "react-router-dom/cjs/react-router-dom.min";
 
@@ -61,5 +62,85 @@ describe("LoginForm component", () => {
     );
     const forgotPassword = screen.getByText("Forgot Password? Reset");
     expect(forgotPassword).toBeInTheDocument();
+  });
+
+  test("does not render welcome to expense tracker when the button was clicked", () => {
+    render(
+      <MemoryRouter>
+        <LoginForm />
+      </MemoryRouter>
+    );
+
+    const buttonElement = screen.getByText("Login");
+    userEvent.click(buttonElement);
+
+    const outputMessage = screen.queryByText("Welcome to Expense Tracker", {
+      exact: false,
+    });
+    expect(outputMessage).toBeNull();
+  });
+
+  test("does not render label email when the button was clicked", () => {
+    render(
+      <MemoryRouter>
+        <LoginForm />
+      </MemoryRouter>
+    );
+
+    const buttonElement = screen.getByText("Login");
+    userEvent.click(buttonElement);
+
+    const outputMessage = screen.queryByText("Email", {
+      exact: false,
+    });
+    expect(outputMessage).toBeNull();
+  });
+
+  test("does not render label password when the button was clicked", () => {
+    render(
+      <MemoryRouter>
+        <LoginForm />
+      </MemoryRouter>
+    );
+
+    const buttonElement = screen.getByText("Login");
+    userEvent.click(buttonElement);
+
+    const outputMessage = screen.queryByText("Password", {
+      exact: false,
+    });
+    expect(outputMessage).toBeNull();
+  });
+
+  test("does not render label email when the button switch to signup was clicked", () => {
+    render(
+      <MemoryRouter>
+        <LoginForm />
+      </MemoryRouter>
+    );
+
+    const buttonElement = screen.getByText("Don't have an account? SingUp");
+    userEvent.click(buttonElement);
+
+    const outputMessage = screen.queryByText("Email", {
+      exact: false,
+    });
+    expect(outputMessage).toBeNull();
+  });
+
+  test("does not render button login when the button switch to signup was clicked", () => {
+    render(
+      <MemoryRouter>
+        <LoginForm />
+      </MemoryRouter>
+    );
+
+    const buttonElement = screen.getByText("Don't have an account? SingUp");
+    userEvent.click(buttonElement);
+
+    const outputMessage = screen.queryByText("Login", {
+      exact: false,
+    });
+    expect(outputMessage).toBeNull();
   });
 });
